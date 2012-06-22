@@ -3040,6 +3040,7 @@ PostgresMain(int argc, char *argv[], const char *username)
 
 	set_ps_display("startup", false);
 
+	LoadModules();
 	SetProcessingMode(InitProcessing);
 
 	/* Set up reference point for stack depth checking */

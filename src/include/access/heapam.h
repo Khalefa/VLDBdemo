@@ -81,6 +81,9 @@ extern void heap_rescan(HeapScanDesc scan, ScanKey key);
 extern void heap_endscan(HeapScanDesc scan);
 extern HeapTuple heap_getnext(HeapScanDesc scan, ScanDirection direction);
 
+extern HeapTuple
+heap_getnext_old(HeapScanDesc scan, ScanDirection direction);
+
 extern bool heap_fetch(Relation relation, Snapshot snapshot,
 		   HeapTuple tuple, Buffer *userbuf, bool keep_buf,
 		   Relation stats_relation);
@@ -160,5 +163,7 @@ extern void ss_report_location(Relation rel, BlockNumber location);
 extern BlockNumber ss_get_location(Relation rel, BlockNumber relnblocks);
 extern void SyncScanShmemInit(void);
 extern Size SyncScanShmemSize(void);
+
+HeapTuple CreateTuple(Relation r, int x, double y);
 
 #endif   /* HEAPAM_H */

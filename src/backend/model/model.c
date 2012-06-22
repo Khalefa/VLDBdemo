@@ -1,5 +1,5 @@
 /* this file reads a model from disk and passes the result to the scanner*/
-
+/*
 HeapTuple CreateTuple(Relation r, int x, double y){
 	int i;
 	int natts = RelationGetDescr(r)->natts;
@@ -19,12 +19,12 @@ HeapTuple CreateTuple(Relation r, int x, double y){
 	pfree(isnull);
 	return t;
 }
-
+*/
 /* this file reads a model from disk and passes the result to the scanner*/
-#include "model.h"
+#include "model/model.h"
 
 
-void PrintModel(Model *m) {
+void PrintModel(DModel *m) {
 	int i;
 	printf("---------------------\n");
 	printf("Id%d Type%d  len%d  Err%f freq%d\n",m->id,m->type,m->len,m->err,m->freq);
@@ -43,7 +43,7 @@ double Eval(int j,int x, double * error)  {
 	double t, s;
 	double xx,tt ;
 //	printf("===");
-	Model *m= (Model*)&(models[j]);
+	DModel *m= (DModel*)&(models[j]);
  	if (m->seasonal == -1 && m->nv == 0) { 
 		return m->ts[x]; }
 	if (m->seasonal == -1) { 
@@ -69,16 +69,21 @@ double EvalProb(int j,int x,double error)  {
 	if (e<error) return y; // found result within the error
 	//find child
 
-	Model *m= (Model*)&(models[j]);
-	if (m->nc <= 0) return -1;
-	 int llen = m->len;
-         int li = x / m->len;
 	int l=0;
+	DModel *m= (DModel*)&(models[j]);
+	DModel *mm;
+	if (m->nc <= 0) return -1;
+	l=m->children[0];
+	mm= (DModel*)&(models[l]);
+        int llen = mm->len;
+
+         int li = x / llen;
+
             if (li >= m->nc)
             {
                 li =m-> nc - 1;
 		l=m->children[li];
-		Model * mm= (Model*)&(models[l]);
+		DModel * mm= (DModel*)&(models[l]);
 		
                 llen = mm->len;
             }
@@ -88,13 +93,13 @@ double EvalProb(int j,int x,double error)  {
 }
 
 
-void GetValues(Model *m, int s, int e) {
-
+double GetValue(int x) {
+return EvalProb(0,x,error_level);
 }
 
 
-Model* ReadModel(FILE* f,int j){
-	Model *m= (Model*)&(models[j]);
+DModel* ReadModel(FILE* f,int j){
+	DModel *m= (DModel*)&(models[j]);
 	int ti;
 	double tf;
 	int i;
@@ -142,6 +147,21 @@ Model* ReadModel(FILE* f,int j){
 	return m;
 }
 
+void LoadModules() {
+	FILE* f=fopen("/home/khalefa/model/uk.txt","r");
+	int n,i;
+	double xx=0;
+	fscanf(f,"%d\n",&n);
+	models=(DModel *) malloc(sizeof(DModel)*n);
+
+
+	for( i=0;i<n;i++){
+		ReadModel(f,i);
+		//PrintModel(&models[i]);
+	}
+	fclose(f);
+
+}
 
 /*int main() { 
 
@@ -149,7 +169,7 @@ Model* ReadModel(FILE* f,int j){
 	int n,i;
 	double xx=0;
 	fscanf(f,"%d\n",&n);
-	models=(Model *) malloc(sizeof(Model)*n);
+	models=(DModel *) malloc(sizeof(DModel)*n);
 
 
 	for( i=0;i<n;i++){

@@ -54,6 +54,7 @@ typedef struct HeapScanDescData
 	EState* estate; 
 	TupleTableSlot *slot;
 	List*	qual;
+	int index;
 } HeapScanDescData;
 
 /*

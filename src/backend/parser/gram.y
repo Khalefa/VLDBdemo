@@ -7090,10 +7090,12 @@ select_clause:
  * NOTE: only the leftmost component SelectStmt should have INTO.
  * However, this is not checked by the grammar; parse analysis must check it.
  */
+
+/*opt_error_clause: ERROR Iconst {$$=$2;} | {$$=-1;}; */
 simple_select:
 			SELECT opt_distinct target_list
 			into_clause from_clause where_clause
-			group_clause having_clause window_clause
+			group_clause having_clause window_clause 
 				{
 					SelectStmt *n = makeNode(SelectStmt);
 					n->distinctClause = $2;
@@ -7104,6 +7106,8 @@ simple_select:
 					n->groupClause = $7;
 					n->havingClause = $8;
 					n->windowClause = $9;
+					//opt_error_clause
+					//n->error = $10;
 					$$ = (Node *)n;
 				}
 			| values_clause							{ $$ = $1; }

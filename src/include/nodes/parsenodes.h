@@ -995,6 +995,8 @@ typedef struct SelectStmt
 	Node 	*forecastExpr;
 
 	Node	*disAggExpr;
+
+	int error;
 } SelectStmt;
 
 

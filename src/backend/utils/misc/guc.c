@@ -416,7 +416,9 @@ int			log_min_messages = WARNING;
 int			client_min_messages = NOTICE;
 int			log_min_duration_statement = -1;
 int			log_temp_files = -1;
-
+double			error_level=0;
+int			grp_len=0;
+char			*grp_fnc;
 int			num_temp_buffers = 1000;
 
 char	   *ConfigFileName;
@@ -2090,7 +2092,6 @@ static struct config_int ConfigureNamesInt[] =
 		&server_version_num,
 		PG_VERSION_NUM, PG_VERSION_NUM, PG_VERSION_NUM, NULL, NULL
 	},
-
 	{
 		{"log_temp_files", PGC_SUSET, LOGGING_WHAT,
 			gettext_noop("Log the use of temporary files larger than this number of kilobytes."),
@@ -2109,6 +2110,16 @@ static struct config_int ConfigureNamesInt[] =
 		&pgstat_track_activity_query_size,
 		1024, 100, 102400, NULL, NULL
 	},
+	{
+		{"grp_len", PGC_USERSET, QUERY_TUNING_METHOD,
+			gettext_noop(" Sets the group lenght."),
+			NULL
+		},
+		&grp_len,
+		0, 0, INT_MAX, NULL, NULL
+	},
+
+
 
 	/* End-of-list marker */
 	{
@@ -2119,6 +2130,15 @@ static struct config_int ConfigureNamesInt[] =
 
 static struct config_real ConfigureNamesReal[] =
 {
+	{
+		{"error_level", PGC_USERSET, QUERY_TUNING_METHOD,
+			gettext_noop(" Set the error level."),
+			NULL
+		},
+		&error_level,
+		0, 0, DBL_MAX, NULL, NULL
+	},
+
 	{
 		{"seq_page_cost", PGC_USERSET, QUERY_TUNING_COST,
 			gettext_noop("Sets the planner's estimate of the cost of a "
@@ -2295,6 +2315,15 @@ static struct config_real ConfigureNamesReal[] =
 
 static struct config_string ConfigureNamesString[] =
 {
+	{
+		{"grp_fnc", PGC_USERSET, QUERY_TUNING_METHOD,
+			gettext_noop(" Sets the group lenght."),
+			NULL
+		},
+		&grp_fnc,
+		"",  NULL, NULL
+	},
+
 	{
 		{"archive_command", PGC_SIGHUP, WAL_SETTINGS,
 			gettext_noop("Sets the shell command that will be called to archive a WAL file."),

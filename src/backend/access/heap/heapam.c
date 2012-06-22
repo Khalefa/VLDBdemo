@@ -68,6 +68,11 @@
 #include "utils/syscache.h"
 #include "utils/tqual.h"
 #include "executor/executor.h"
+#include "model/model.h"
+extern double			error_level;
+extern int			grp_len;
+extern char			*grp_fnc;
+
 ExprContext * CreateExprContext(EState * estate);
 static bool heap_tuple_attr_equals(TupleDesc tupdesc, int attrnum,
 					   HeapTuple tup1, HeapTuple tup2);
@@ -178,7 +183,7 @@ initscan(HeapScanDesc scan, ScanKey key, bool is_rescan)
 	ItemPointerSetInvalid(&scan->rs_ctup.t_self);
 	scan->rs_cbuf = InvalidBuffer;
 	scan->rs_cblock = InvalidBlockNumber;
-
+	scan->index=0;
 	/* we don't have a marked position... */
 	ItemPointerSetInvalid(&(scan->rs_mctid));
 
@@ -1429,8 +1434,127 @@ heap_endscan(HeapScanDesc scan)
 #endif   /* !defined(HEAPDEBUGALL) */
 
 
+HeapTuple CreateTuple(Relation r, int x, double y)
+{
+	int i;
+	int yy = (int )y;
+	int natts = RelationGetDescr(r)->natts;
+	//elog(WARNING,"%lf",y);
+	Datum* values = (Datum *) palloc(natts * sizeof(Datum));
+	bool* isnull = (bool *) palloc(natts * sizeof(bool));
+	 
+	values[0]=x;
+	values[1]=yy;
+	isnull[0] = false;
+	isnull[1] = false;
+	
+	HeapTuple t= heap_form_tuple(RelationGetDescr(r),
+				values,
+				isnull);
+
+	pfree(values);
+	pfree(isnull);
+	return t;
+}
+HeapTuple
+heap_getnext00(HeapScanDesc scan, ScanDirection direction)
+{
+	char *s=RelationGetRelationName(scan->rs_rd);
+	int i=0;
+	double y=0;
+	int x=0;
+	double y_min=1000000;
+//	elog(WARNING, " Rel %s\n ",s);
+	if ((s[0]=='m') &&  (error_level > 0))
+	{
+//		elog(WARNING, " scan->index %d\n ",scan->index );
+		if (scan->index>162144) return NULL;
+		for(i=0;i<162144;i++){
+//		elog(WARNING, " I %d ",i );
+		scan->index++;
+		if (scan->index>162144) return NULL;
+		y=GetValue(i);
+		//elog(WARNING, "x %d y %f\n",i,y);
+
+		 if (y<y_min) {
+			x=i;
+			
+			y_min=y;
+			     }
+		}
+		return CreateTuple(scan->rs_rd,x, y_min);
+	}
+	
+	return heap_getnext_old(scan,direction);
+}
+	//econtext=CreateExprContext(scan->estate) ;
+	//slot = scan->slot;
+	//qual = scan->qual;
+//	List* qual;
+//	TupleTableSlot *slot;
+//	HeapTuple t;
+
+/*		t=CreateTuple(scan->rs_rd,x, y);
+		ExecStoreTuple(t, slot,  scan->rs_cbuf,   false);	
+		econtext->ecxt_scantuple = slot;
+		if ( ExecQual(qual, econtext, true)){
+			x=scan->index;	
+		heap_freetuple(t);
+			//return t;
+			break;				
+		}
+		heap_freetuple(t);
+*/
+
+ExprContext*	econtext=NULL;
+HeapTuple ComputeNextTuple(HeapScanDesc scan) {
+	DModel * m=&(models[0]);
+	int length=m->len;
+	if (scan->index>length) return NULL;
+
+	double y=0;
+	double o=0;
+	int x;
+	int len=0;
+	int cnt=0;
+	for(;;){
+		scan->index++;
+		x=scan->index;
+		y=GetValue(scan->index);
+		
+		if ((grp_fnc[0]=='s')||(grp_fnc[0]=='a')) { o=o+y; cnt++;}
+		else if ((grp_fnc[0]=='M') && (o<y)) o =y;
+		else if ((grp_fnc[0]=='m') && (o>y)) o=y;
+		else if ((grp_fnc[0]=='\0')||(grp_fnc[0]=='n')) o=y;
+		len++;
+		if((len>grp_len)&&(grp_len!=-1)) {
+			if (grp_fnc[0]=='a') o=o/cnt;
+			break;	
+		}
+		if ((scan->index>length) &&(grp_len==-1))  return NULL;
+		if (scan->index>length) break;
+	}
+
+//	elog(WARNING,"x %d, y%f",x,o);
+	return CreateTuple(scan->rs_rd,x, o);
+
+}
 HeapTuple
 heap_getnext(HeapScanDesc scan, ScanDirection direction)
+{
+	char *s=RelationGetRelationName(scan->rs_rd);
+	if ((s[0]=='m') &&  (error_level > 0))
+	{
+
+	return  ComputeNextTuple(scan);
+	}
+	
+	return heap_getnext_old(scan,direction);
+}
+
+
+HeapTuple
+heap_getnext_old(HeapScanDesc scan, ScanDirection direction)
 {
 	/* Note: no locking manipulations needed */
 

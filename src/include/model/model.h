@@ -1,9 +1,12 @@
+
+#ifndef MODEL_H
+#define MODEL_H
 #include <stdio.h>
 
 #define EXPLICIT 0
 #define IMPLICIT 2
 #define TREND 1
-
+extern double error_level;
 struct _model {
 int id;
 int seasonal;
@@ -22,6 +25,13 @@ int nc;
 int *children;
 };
 
-typedef struct _model Model;
+typedef struct _model DModel;
 
-Model *models;
+DModel *models;
+void LoadModules();
+DModel* ReadModel(FILE* f,int j);
+double EvalProb(int j,int x,double error);
+double Eval(int j,int x, double * error) ;
+double GetValue(int x);
+
+#endif
