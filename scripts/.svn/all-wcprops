@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svnmiracle/!svn/ver/2812/Documents/Deliverables/M28/D3.4/scripts
+END
+query_select.sql
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svnmiracle/!svn/ver/2812/Documents/Deliverables/M28/D3.4/scripts/query_select.sql
+END
+query_forecast.sql
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svnmiracle/!svn/ver/2812/Documents/Deliverables/M28/D3.4/scripts/query_forecast.sql
+END
+create_tables.sql
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svnmiracle/!svn/ver/2812/Documents/Deliverables/M28/D3.4/scripts/create_tables.sql
+END
